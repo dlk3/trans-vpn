@@ -24,7 +24,7 @@ The container has the following external connections:
 
 ## Running The Container
 
-The `run-trans-vpn` script can be used to start the container and set up the necessary port forwarding for port 9091.  See the script for examples of the `podman` and `firewall-cmd` commands used to do these things.
+The container can be run as a systemd service using the `trans-vpn.service` unit file in this project.  That unit file depends on the `start-stop` script from this project being installed as `/etc/trans-vpn/start-stop`.
 
 After starting the container, use tools like `transmission-remote` or `transgui` to administer the daemon:
 
