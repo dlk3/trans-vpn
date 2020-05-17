@@ -1,0 +1,12 @@
+[Unit]
+Description=trans-vpn container
+
+[Service]
+#Restart=always
+ExecStart=/usr/bin/podman run --attach --name=$CONTAINER --rm --volume=/transmission:/transmission --volume=/etc/trans-vpn:/etc/openvpn/client --volume=/var/log:/var/log --cap-add=NET_ADMIN --device /dev/net/tun --publish=${PORT}:9091/tcp trans-vpn
+ExecStartPost=/bin/sh -c '/etc/trans-vpn/port-formarding on trans-vpn 9091'
+ExecStopPre=/bin/sh -c '/etc/trans-vpn/port-formarding off trans-vpn 9091'
+ExecStop=/usr/bin/podman stop trans-vpn
+
+[Install]
+WantedBy=local.target

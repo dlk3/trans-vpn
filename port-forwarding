@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+# This script depends on the "jq" package: dnf install jq
+
+ACTION="$1"
+CONTAINER="$2"
+PORT="$3"
+
+#  Get the IP address that the container is using
+IP=$(/usr/bin/podman inspect $CONTAINER | /usr/bin/jq -r '.[0].NetworkSettings.IPAddress')
+
+if [ "$ACTION" == "on" ]; then
+	#  Set up the port forwarding configuration
+	/usr/bin/firewall-cmd --zone=public --add-port ${PORT}/tcp
+	/usr/bin/firewall-cmd --zone=trusted --add-masquerade
+	/usr/bin/firewall-cmd --zone=trusted --add-forward-port=port=${PORT}:proto=tcp:toaddr=$IP
+elif [ "$ACTION" == "off" ]; then
+	#  Remove the port forwarding configuration
+	/usr/bin/firewall-cmd --zone=trusted --remove-forward-port=port=${PORT}:proto=tcp:toaddr=$IP
+	/usr/bin/firewall-cmd --zone=trusted --remove-masquerade
+	/usr/bin/firewall-cmd --zone=public --remove-port ${PORT}/tcp
+fi
