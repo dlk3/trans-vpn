@@ -1,12 +1,20 @@
 [Unit]
 Description=trans-vpn container
+After=network-online.target
+Wants=network-online.target
 
 [Service]
-#Restart=always
+Restart=always
 Type=forking
+After=network-online.target
 PIDFile=/run/trans-vpn.pid
-ExecStart=/etc/trans-vpn/start-stop start trans-vpn 9091
-ExecStop=/etc/trans-vpn/start-stop stop trans-vpn 9091
+ExecStartPre=/usr/bin/firewall-cmd --zone=trusted --add-port 11091/tcp
+ExecStartPre=/usr/bin/firewall-cmd --zone=trusted --add-forward-port=port=11091:proto=tcp:toaddr=10.88.100.3
+ExecStart=/usr/bin/podman run --detach --name=trans-vpn --rm --ip=10.88.100.3 --volume=/transmission:/transmission --volume=/etc/openvpn/client:/etc/openvpn/client --volume=/var/log:/var/log --cap-add=NET_ADMIN --device /dev/net/tun --publish=11091:11091/tcp --conmon-pidfile=/run/trans-vpn.pid trans-vpn
+ExecStop=/usr/bin/transmission-remote localhost:11091 -n r00df00d:pointyB00ts --exit ; /usr/bin/podman stop trans-vpn
+ExecStopPost=/usr/bin/podman rm trans-vpn
+ExecStopPost=/usr/bin/firewall-cmd --zone=trusted --remove-forward-port=port=11091:proto=tcp:toaddr=10.88.100.3
+ExecStopPost=/usr/bin/firewall-cmd --zone=trusted --remove-port 11091/tcp
 
 [Install]
-WantedBy=local.target
+WantedBy=multi-user.target
