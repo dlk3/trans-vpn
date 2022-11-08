@@ -1,6 +1,4 @@
-#FROM registry.fedoraproject.org/fedora:latest
-#  trans-gui app fails when used against a later version of transmission-daemon, so ...
-FROM registry.fedoraproject.org/fedora:31
+FROM registry.fedoraproject.org/fedora:latest
 RUN dnf install -y transmission-daemon openvpn
 RUN dnf upgrade -y
 COPY client.up /etc/openvpn/client.up
